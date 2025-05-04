@@ -40,9 +40,9 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                         method: "POST",
                         body: formData,
                         mode: "no-cors",
-                        headers: {
-                            'Accept': 'application/json',
-                        },
+                        // headers: {
+                        //     'Accept': 'application/json',
+                        // },
                     });
 
                     const data = await response.json();
