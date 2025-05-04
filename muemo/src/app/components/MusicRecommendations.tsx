@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
+import Image from "next/image";
 
 // Fallback queries
 const emotionPlaylists: Record<string, string> = {
@@ -25,34 +26,44 @@ type MusicRecommendationsProps = {
     emotion: string;
 };
 
+interface YouTubePlaylistItem {
+    id: {
+        playlistId: string;
+    };
+    snippet: {
+        title: string;
+        thumbnails: {
+            default: {
+                url: string;
+            };
+        };
+    };
+}
+
 const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(true);
     const [language, setLanguage] = useState("english");
     const [genre, setGenre] = useState("pop");
-    const [user, setUser] = useState<any>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
     // Timeout-based fetch
-    const fetchWithTimeout = (url: string, timeout = 8000) => {
+    const fetchWithTimeout = (url: string, timeout = 8000): Promise<Response> => {
         return Promise.race([
             fetch(url),
-            new Promise((_, reject) =>
+            new Promise<never>((_, reject) =>
                 setTimeout(() => reject(new Error("Request timed out")), timeout)
             )
-        ]);
+        ]) as Promise<Response>;
     };
 
     // Fetch user preferences
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (authUser: User | null) => {
             if (!authUser) {
-                setUser(null);
                 setLoading(false);
                 return;
             }
-
-            setUser(authUser);
 
             try {
                 const docRef = doc(db, "preferences", authUser.uid);
@@ -65,11 +76,9 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
                     const genreFromData = data.emotions?.[normalizedEmotion]?.genres?.[0] ?? "pop";
                     const languageFromData = data.languages?.[0] ?? "english";
 
-                    // Only update if changed
                     if (genreFromData !== genre) setGenre(genreFromData);
                     if (languageFromData !== language) setLanguage(languageFromData);
                 }
-
             } catch (err) {
                 console.error("Error loading user preferences:", err);
             } finally {
@@ -78,7 +87,7 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
         });
 
         return () => unsubscribe();
-    }, [emotion]);
+    }, [emotion, genre, language]);
 
     // Fetch YouTube playlists with debounce
     useEffect(() => {
@@ -89,28 +98,30 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
         debounceRef.current = setTimeout(() => {
             const fetchPlaylist = async () => {
                 setLoading(true);
-
+            
                 const fallback = emotionPlaylists[emotion.toLowerCase()] || "music playlist";
                 const query = `${fallback} ${genre} ${language}`;
                 const API_KEY = "AIzaSyBlQz_N1bPfXWfD_Bi5SBDYF8UKEPv_Qz8"; // Your YouTube API Key
                 const BASE_URL = "https://www.googleapis.com/youtube/v3/search";
-
+            
                 const url = `${BASE_URL}?part=snippet&q=${encodeURIComponent(query)}&type=playlist&maxResults=5&key=${API_KEY}`;
-
+            
                 try {
                     const response = await fetchWithTimeout(url);
+            
                     if (!(response instanceof Response)) {
                         throw new Error("Unexpected response type");
                     }
+            
                     const data = await response.json();
-
+            
                     if (data.items) {
-                        const fetchedPlaylists: Playlist[] = data.items.map((item: any) => ({
+                        const fetchedPlaylists: Playlist[] = data.items.map((item: YouTubePlaylistItem) => ({
                             id: item.id.playlistId,
                             title: item.snippet.title,
                             thumbnail: item.snippet.thumbnails?.default?.url || "/default-music-thumbnail.jpg"
                         }));
-
+            
                         setPlaylists(fetchedPlaylists);
                     }
                 } catch (error) {
@@ -118,10 +129,10 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
                 } finally {
                     setLoading(false);
                 }
-            };
+            };            
 
             fetchPlaylist();
-        }, 1500); // 1.5 seconds debounce
+        }, 1500);
 
         return () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -154,10 +165,12 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
                                         rel="noopener noreferrer"
                                         className="flex items-center bg-blue-600 p-3 rounded-lg shadow-md hover:bg-blue-700 transition"
                                     >
-                                        <img
+                                        <Image
                                             src={playlist.thumbnail}
                                             alt={playlist.title}
-                                            className="w-12 h-12 rounded-md mr-3"
+                                            width={48}
+                                            height={48}
+                                            className="rounded-md mr-3"
                                         />
                                         <div className="overflow-hidden">
                                             <h4 className="font-semibold truncate w-full">{playlist.title}</h4>

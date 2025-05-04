@@ -1,6 +1,8 @@
 'use client';
+
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
 import GoogleSignIn from '@/app/components/auth/GoogleSignIn';
@@ -17,22 +19,27 @@ export default function SignUp() {
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
 
         if (password !== confirmPassword) {
             setError("Passwords don't match");
-            setLoading(false);
             return;
         }
+
+        setLoading(true);
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, { displayName: username });
             router.push('/');
-        } catch (err: any) {
-            console.error("Signup error:", err);
-            setError(getFriendlyError(err.code));
+        } catch (err) {
+            if (err instanceof FirebaseError) {
+                console.error("Signup error:", err);
+                setError(getFriendlyError(err.code));
+            } else {
+                console.error("Unknown signup error:", err);
+                setError("An unexpected error occurred.");
+            }
         } finally {
             setLoading(false);
         }
@@ -45,7 +52,7 @@ export default function SignUp() {
             case 'auth/invalid-email':
                 return 'Invalid email address';
             case 'auth/weak-password':
-                return 'Password should be at least 6 characters';
+                return 'Password must be at least 6 characters';
             default:
                 return 'Signup failed. Please try again';
         }
@@ -57,70 +64,45 @@ export default function SignUp() {
                 <h1 className="text-2xl font-bold mb-6 text-center">Sign Up to Muemo</h1>
 
                 <form onSubmit={handleSignUp} className="space-y-4">
-                    <div>
-                        <label htmlFor="username" className="block text-sm font-medium mb-1">
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            placeholder="Your username"
-                            className="w-full p-3 rounded bg-gray-200 text-black focus:ring-2 focus:ring-blue-500"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium mb-1">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="your@email.com"
-                            className="w-full p-3 rounded bg-gray-200 text-black focus:ring-2 focus:ring-blue-500"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium mb-1">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            placeholder="••••••••"
-                            className="w-full p-3 rounded bg-gray-200 text-black focus:ring-2 focus:ring-blue-500"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                            Confirm Password
-                        </label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            placeholder="••••••••"
-                            className="w-full p-3 rounded bg-gray-200 text-black focus:ring-2 focus:ring-blue-500"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+                    <InputField
+                        id="username"
+                        label="Username"
+                        value={username}
+                        onChange={setUsername}
+                        type="text"
+                        placeholder="Your username"
+                    />
+                    <InputField
+                        id="email"
+                        label="Email Address"
+                        value={email}
+                        onChange={setEmail}
+                        type="email"
+                        placeholder="your@email.com"
+                    />
+                    <InputField
+                        id="password"
+                        label="Password"
+                        value={password}
+                        onChange={setPassword}
+                        type="password"
+                        placeholder="••••••••"
+                    />
+                    <InputField
+                        id="confirmPassword"
+                        label="Confirm Password"
+                        value={confirmPassword}
+                        onChange={setConfirmPassword}
+                        type="password"
+                        placeholder="••••••••"
+                    />
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-3 px-4 rounded font-bold ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
+                        className={`w-full py-3 px-4 rounded font-bold transition-colors ${
+                            loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
                     >
                         {loading ? 'Creating account...' : 'Create Account'}
                     </button>
@@ -147,6 +129,34 @@ export default function SignUp() {
                     </Link>
                 </p>
             </div>
+        </div>
+    );
+}
+
+type InputFieldProps = {
+    id: string;
+    label: string;
+    type: string;
+    placeholder: string;
+    value: string;
+    onChange: (val: string) => void;
+};
+
+function InputField({ id, label, type, placeholder, value, onChange }: InputFieldProps) {
+    return (
+        <div>
+            <label htmlFor={id} className="block text-sm font-medium mb-1">
+                {label}
+            </label>
+            <input
+                type={type}
+                id={id}
+                placeholder={placeholder}
+                className="w-full p-3 rounded bg-gray-200 text-black focus:ring-2 focus:ring-blue-500"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                required
+            />
         </div>
     );
 }

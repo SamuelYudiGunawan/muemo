@@ -13,24 +13,24 @@ export default function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
             router.push('/');
-        } catch (err: any) {
-            console.error("Login error:", err);
-            setError(getFriendlyError(err.code));
+        } catch (err) {
+            const errorCode = (err as { code?: string }).code || '';
+            console.error('Login error:', err);
+            setError(getFriendlyError(errorCode));
         } finally {
             setLoading(false);
         }
     };
 
-    // Convert Firebase error codes to user-friendly messages
-    const getFriendlyError = (code: string) => {
+    const getFriendlyError = (code: string): string => {
         switch (code) {
             case 'auth/invalid-email':
                 return 'Please enter a valid email address';
@@ -49,8 +49,7 @@ export default function Login() {
         <div className="min-h-screen bg-[#2A3335] text-white flex flex-col items-center justify-center p-6">
             <div className="w-full max-w-sm bg-[#1E2729] p-8 rounded-lg shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Log in to Muemo</h1>
-                
-                {/* Email/Password Form */}
+
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -66,7 +65,7 @@ export default function Login() {
                             required
                         />
                     </div>
-                    
+
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium mb-1">
                             Password
@@ -103,19 +102,16 @@ export default function Login() {
                     )}
                 </form>
 
-                {/* Divider */}
                 <div className="my-6 flex items-center">
                     <div className="flex-grow border-t border-gray-600"></div>
                     <span className="mx-4 text-gray-400 text-sm">OR</span>
                     <div className="flex-grow border-t border-gray-600"></div>
                 </div>
 
-                {/* Google Sign-In */}
                 <GoogleSignIn />
 
-                {/* Sign-up Link */}
                 <p className="mt-6 text-center text-sm">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link href="/auth/signup" className="text-blue-400 font-medium hover:underline">
                         Sign up
                     </Link>

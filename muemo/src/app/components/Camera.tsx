@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Video, VideoOff, Camera as CameraIcon } from "lucide-react";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
-import { app } from "@/lib/firebaseConfig"; // Ensure firebase app is initialized here
+import { app } from "@/lib/firebaseConfig";
 
 interface CameraProps {
     setEmotion: (emotion: string) => void;
@@ -19,45 +19,7 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
     const emotionBufferRef = useRef<string[]>([]);
     const db = getFirestore(app);
 
-    useEffect(() => {
-        if (isCameraOn) {
-            startCapturing();
-        } else {
-            stopCapturing();
-        }
-        return () => stopCapturing();
-    }, [isCameraOn, mode, intervalTime]);
-
-    const startCapturing = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-
-            if (mode === "Live") {
-                captureIntervalRef.current = setInterval(captureFrame, intervalTime * 60 * 1000);
-            } else if (mode === "Average") {
-                // Capture every 15 seconds
-                captureIntervalRef.current = setInterval(captureAndBuffer, 15000);
-                // Save average every `intervalTime` minutes
-                averageSaveIntervalRef.current = setInterval(saveAverageEmotion, intervalTime * 60 * 1000);
-            }
-        } catch (error) {
-            console.error("Error accessing camera:", error);
-        }
-    };
-
-    const stopCapturing = () => {
-        const stream = videoRef.current?.srcObject as MediaStream | null;
-        if (stream) stream.getTracks().forEach((track) => track.stop());
-        if (videoRef.current) videoRef.current.srcObject = null;
-        if (captureIntervalRef.current) clearInterval(captureIntervalRef.current);
-        if (averageSaveIntervalRef.current) clearInterval(averageSaveIntervalRef.current);
-        emotionBufferRef.current = [];
-    };
-
-    const captureFrame = async (): Promise<string | null> => {
+    const captureFrame = useCallback(async (): Promise<string | null> => {
         if (!videoRef.current) return null;
         const canvas = document.createElement("canvas");
         canvas.width = videoRef.current.videoWidth;
@@ -69,7 +31,6 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
         return new Promise((resolve) => {
             canvas.toBlob(async (blob) => {
                 if (!blob) return resolve(null);
-
                 const formData = new FormData();
                 formData.append("image", blob);
 
@@ -91,20 +52,19 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                 }
             }, "image/jpeg");
         });
-    };
+    }, [setEmotion]);
 
-    const captureAndBuffer = async () => {
+    const captureAndBuffer = useCallback(async () => {
         const emotion = await captureFrame();
         if (emotion) {
             emotionBufferRef.current.push(emotion);
         }
-    };
+    }, [captureFrame]);
 
-    const saveAverageEmotion = async () => {
+    const saveAverageEmotion = useCallback(async () => {
         const buffer = emotionBufferRef.current;
         if (buffer.length === 0) return;
 
-        // Find most frequent emotion
         const frequency: Record<string, number> = {};
         for (const e of buffer) {
             frequency[e] = (frequency[e] || 0) + 1;
@@ -122,7 +82,43 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
         }
 
         emotionBufferRef.current = [];
+    }, [db]);
+
+    const startCapturing = useCallback(async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+
+            if (mode === "Live") {
+                captureIntervalRef.current = setInterval(captureFrame, intervalTime * 60 * 1000);
+            } else if (mode === "Average") {
+                captureIntervalRef.current = setInterval(captureAndBuffer, 15000);
+                averageSaveIntervalRef.current = setInterval(saveAverageEmotion, intervalTime * 60 * 1000);
+            }
+        } catch (error) {
+            console.error("Error accessing camera:", error);
+        }
+    }, [mode, intervalTime, captureFrame, captureAndBuffer, saveAverageEmotion]);
+
+    const stopCapturing = () => {
+        const stream = videoRef.current?.srcObject as MediaStream | null;
+        if (stream) stream.getTracks().forEach((track) => track.stop());
+        if (videoRef.current) videoRef.current.srcObject = null;
+        if (captureIntervalRef.current) clearInterval(captureIntervalRef.current);
+        if (averageSaveIntervalRef.current) clearInterval(averageSaveIntervalRef.current);
+        emotionBufferRef.current = [];
     };
+
+    useEffect(() => {
+        if (isCameraOn) {
+            startCapturing();
+        } else {
+            stopCapturing();
+        }
+        return () => stopCapturing();
+    }, [isCameraOn, startCapturing]);
 
     const toggleCamera = () => {
         setIsCameraOn((prev) => !prev);

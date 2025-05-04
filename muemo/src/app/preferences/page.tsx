@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -50,7 +50,7 @@ const EMOTIONS = ['Happy', 'Sad', 'Angry', 'Fear', 'Disgust', 'Neutral', 'Surpri
 
 const PreferencesPage = () => {
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
     const [saving, setSaving] = useState(false);
@@ -67,7 +67,7 @@ const PreferencesPage = () => {
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [router]);
 
     const loadPreferences = async (userId: string) => {
         try {
