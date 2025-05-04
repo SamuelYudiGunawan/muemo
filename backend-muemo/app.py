@@ -7,9 +7,16 @@ import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
-    "http://localhost:3000",
+    # "http://localhost:3000",
     "https://muemo-production.up.railway.app"
 ]}})
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://muemo-production.up.railway.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
 
 @app.route('/detect_emotion', methods=['POST'])
 def detect_emotion():
