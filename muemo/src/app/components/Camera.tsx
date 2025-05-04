@@ -35,14 +35,10 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                 formData.append("image", blob);
 
                 try {
-                    // const response = await fetch("https://be-muemo-production.up.railway.app/detect_emotion", {
-                    const response = await fetch("https://be-muemo-production.up.railway.app:5000/detect_emotion", {
+                    // const response = await fetch("http://localhost:5000/detect_emotion", {
+                    const response = await fetch("https://be-muemo-production.up.railway.app/detect_emotion", {
                         method: "POST",
                         body: formData,
-                        mode: "no-cors",
-                        // headers: {
-                        //     'Accept': 'application/json',
-                        // },
                     });
                     console.log("Response:", response);
                     const data = await response.json();

@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 # Allow requests from your frontend domain (replace with your actual frontend URL)
-CORS(app)
+CORS(app, resources={r"/detect_emotion": {"origins": "*"}})
 
 @app.route('/detect_emotion', methods=['POST'])
 def detect_emotion():
