@@ -9,10 +9,9 @@ app = Flask(__name__)
 # Allow requests from your frontend domain (replace with your actual frontend URL)
 CORS(app, resources={
     r"/detect_emotion": {
-        "origins": [
-            "https://muemo-production.up.railway.app",
-            "http://localhost:3000" 
-        ]
+        "origins": ["https://muemo-production.up.railway.app"],
+        "methods": ["POST"], 
+        "allow_headers": ["Content-Type"]
     }
 })
 
