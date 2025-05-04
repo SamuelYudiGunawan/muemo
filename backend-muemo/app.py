@@ -6,8 +6,10 @@ from deepface import DeepFace
 import os
 
 app = Flask(__name__)
-# Allow requests from your frontend domain (replace with your actual frontend URL)
-CORS(app, resources={r"/detect_emotion": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3000",
+    "https://muemo-production.up.railway.app"
+]}})
 
 @app.route('/detect_emotion', methods=['POST'])
 def detect_emotion():
