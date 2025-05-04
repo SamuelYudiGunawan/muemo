@@ -38,10 +38,6 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                     const response = await fetch("https://be-muemo-production.up.railway.app/detect_emotion", {
                         method: "POST",
                         body: formData,
-                        mode: 'cors',  // Explicitly enable CORS
-                        headers: {
-                            'Accept': 'application/json',
-                        },
                     });
                     const data = await response.json();
                     if (data.emotion) {
