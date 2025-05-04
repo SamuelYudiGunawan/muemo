@@ -44,7 +44,7 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                         //     'Accept': 'application/json',
                         // },
                     });
-
+                    console.log("Response:", response);
                     const data = await response.json();
                     if (data.emotion) {
                         setEmotion(data.emotion);

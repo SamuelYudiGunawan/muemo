@@ -3,7 +3,7 @@ import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['i.ytimg.com,', 'www.google.com'],
+    domains: ['i.ytimg.com', 'www.google.com'],
   },
   webpack(config) {
     config.resolve.alias = {
