@@ -6,18 +6,26 @@ from deepface import DeepFace
 import os
 
 app = Flask(__name__)
-CORS(app)
 
-# @app.after_request
-# def after_request(response):
-#     response.headers.add('Access-Control-Allow-Origin', 'https://muemo-production.up.railway.app')
-#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-#     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-#     return response
+# Configure CORS more explicitly
+CORS(app, resources={
+    r"/detect_emotion": {
+        "origins": ["https://muemo-frontend-950251872768.us-central1.run.app", "http://localhost:*"],
+        "methods": ["POST", "OPTIONS"],  # Add OPTIONS for preflight
+        "allow_headers": ["Content-Type"]
+    }
+})
 
-@app.route('/detect_emotion', methods=['POST'])
+@app.route('/detect_emotion', methods=['POST', 'OPTIONS'])  # Add OPTIONS method
 def detect_emotion():
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return jsonify({}), 200
+    
     try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image provided'}), 400
+            
         file = request.files['image'].read()
         np_arr = np.frombuffer(file, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
