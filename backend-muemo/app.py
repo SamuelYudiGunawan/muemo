@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route('/api/detect_emotion', methods=['POST', 'OPTIONS'])
 @cross_origin(
     origins=[
-        "https://muemo-frontend-950251872768.us-central1.run.app",
+        "https://muemo-frontend-950251872768.us-central1.run.app/",
         # "http://localhost:3000"
     ],
     methods=["POST", "OPTIONS"],
