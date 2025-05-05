@@ -36,7 +36,7 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
 
                 try {
                     // const response = await fetch("http://localhost:5000/detect_emotion", {
-                    const response = await fetch("https://be-muemo-production.up.railway.app/detect_emotion", {
+                    const response = await fetch("https://muemo-backend-950251872768.us-central1.run.app/detect_emotion", {
                         method: "POST",
                         body: formData,
                     });
