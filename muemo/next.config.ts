@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://muemo-backend-950251872768.us-central1.run.app/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
