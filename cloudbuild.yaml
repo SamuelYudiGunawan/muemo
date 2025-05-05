@@ -1,21 +1,46 @@
 steps:
-  # Step 1: Build Docker image using Dockerfile from the /muemo folder
+  # Step 1: Build Docker image for Frontend (from /muemo folder)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA', './muemo']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/muemo-frontend:$COMMIT_SHA', '.']
+    dir: 'muemo'
 
-  # Step 2: Push Docker image to Google Container Registry
+  # Step 2: Push Frontend image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/muemo-frontend:$COMMIT_SHA']
 
-  # Step 3: Deploy the image to Cloud Run
+  # Step 3: Deploy Frontend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'muemo'
+      - 'muemo-frontend'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/muemo-frontend:$COMMIT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+
+  # Step 4: Build Docker image for Backend (from /backend-muemo folder)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/muemo-backend:$COMMIT_SHA', '.']
+    dir: 'backend-muemo'
+
+  # Step 5: Push Backend image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/muemo-backend:$COMMIT_SHA']
+
+  # Step 6: Deploy Backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'muemo-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/muemo-backend:$COMMIT_SHA'
       - '--platform'
       - 'managed'
       - '--region'
@@ -25,5 +50,4 @@ steps:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Specify the service account for the build
 serviceAccount: 'projects/muemo-454320/serviceAccounts/950251872768-compute@developer.gserviceaccount.com'
