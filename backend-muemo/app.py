@@ -7,9 +7,12 @@ import os
 
 app = Flask(__name__)
 
-@app.route('/detect_emotion', methods=['POST', 'OPTIONS'])
+@app.route('/api/detect_emotion', methods=['POST', 'OPTIONS'])
 @cross_origin(
-    origins="https://muemo-frontend-950251872768.us-central1.run.app",
+    origins=[
+        "https://muemo-frontend-950251872768.us-central1.run.app",
+        # "http://localhost:3000"
+    ],
     methods=["POST", "OPTIONS"],
     allow_headers=["Content-Type"]
 )

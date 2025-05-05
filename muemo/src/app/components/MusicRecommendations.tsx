@@ -101,7 +101,7 @@ const MusicRecommendations = ({ emotion }: MusicRecommendationsProps) => {
             
                 const fallback = emotionPlaylists[emotion.toLowerCase()] || "music playlist";
                 const query = `${fallback} ${genre} ${language}`;
-                const API_KEY = "AIzaSyBlQz_N1bPfXWfD_Bi5SBDYF8UKEPv_Qz8"; // Your YouTube API Key
+                const API_KEY = "AIzaSyBkx88hxNR67S8Hq7P5xc8ZoG__GjnANWg"; // Your YouTube API Key
                 const BASE_URL = "https://www.googleapis.com/youtube/v3/search";
             
                 const url = `${BASE_URL}?part=snippet&q=${encodeURIComponent(query)}&type=playlist&maxResults=5&key=${API_KEY}`;
