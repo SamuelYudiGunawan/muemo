@@ -41,18 +41,18 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                         // Don't set headers for FormData - the browser will set them automatically
                         // with the correct Content-Type and boundary
                     });
-                    
+
                     console.log("Response status:", response.status);
-                    
+
                     if (!response.ok) {
                         const errorData = await response.json();
                         console.error("Backend error:", errorData);
                         throw new Error(errorData.error || 'Request failed');
                     }
-                    
+
                     const data = await response.json();
                     console.log("Full response data:", data);
-                    
+
                     if (data.emotion) {
                         setEmotion(data.emotion);
                         resolve(data.emotion);

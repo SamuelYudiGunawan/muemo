@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import numpy as np 
 import cv2
 from deepface import DeepFace
@@ -7,19 +7,17 @@ import os
 
 app = Flask(__name__)
 
-# Configure CORS more explicitly
-CORS(app, resources={
-    r"/detect_emotion": {
-        "origins": ["https://muemo-frontend-950251872768.us-central1.run.app", "http://localhost:*"],
-        "methods": ["POST", "OPTIONS"],  # Add OPTIONS for preflight
-        "allow_headers": ["Content-Type"]
-    }
-})
+# Apply CORS globally, but restrict to specific route using @cross_origin
+CORS(app)
 
-@app.route('/detect_emotion', methods=['POST', 'OPTIONS'])  # Add OPTIONS method
+@app.route('/detect_emotion', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=[
+    "https://muemo-frontend-950251872768.us-central1.run.app", 
+    # "http://localhost:3000"
+], methods=["POST", "OPTIONS"], allow_headers=["Content-Type"])
 def detect_emotion():
     if request.method == 'OPTIONS':
-        # Handle preflight request
+        # Preflight request
         return jsonify({}), 200
     
     try:
