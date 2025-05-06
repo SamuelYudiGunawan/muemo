@@ -7,17 +7,26 @@ import os
 
 app = Flask(__name__)
 
-# Configure CORS for the entire app
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "https://muemo-frontend-950251872768.us-central1.run.app",
-            # "http://localhost:3000"  # Uncomment for local development
-        ],
-        "methods": ["POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+# # Configure CORS for the entire app
+# CORS(app, resources={
+#     r"/api/*": {
+#         "origins": [
+#             "https://muemo-frontend-950251872768.us-central1.run.app",
+#             # "http://localhost:3000"  # Uncomment for local development
+#         ],
+#         "methods": ["POST", "OPTIONS"],
+#         "allow_headers": ["Content-Type"]
+#     }
+# })
+
+CORS(app, supports_credentials=True)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://muemo-frontend-950251872768.us-central1.run.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
 
 @app.route('/api/detect_emotion', methods=['POST', 'OPTIONS'])
 def detect_emotion():
