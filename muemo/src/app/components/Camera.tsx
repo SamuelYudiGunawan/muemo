@@ -35,7 +35,7 @@ const Camera: React.FC<CameraProps> = ({ setEmotion, mode, intervalTime }) => {
                 formData.append("image", blob);
 
                 try {
-                    const response = await fetch("/api/detect_emotion", {
+                    const response = await fetch("https://muemo-backend-950251872768.us-central1.run.app/api/detect_emotion", {
                         method: "POST",
                         body: formData,
                     });
