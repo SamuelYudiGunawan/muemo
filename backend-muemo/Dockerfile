@@ -13,11 +13,13 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory
 WORKDIR /app
 
-# Copy your application files
-COPY . .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy your application files
+COPY app.py .
 
 CMD ["gunicorn", "-b", ":8080", "app:app"]
