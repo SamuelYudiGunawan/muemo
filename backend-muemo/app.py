@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import cross_origin
+from flask_cors import CORS
 import numpy as np 
 import cv2
 from deepface import DeepFace
@@ -7,18 +7,24 @@ import os
 
 app = Flask(__name__)
 
+# Configure CORS for the entire app
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://muemo-frontend-950251872768.us-central1.run.app",
+            # "http://localhost:3000"  # Uncomment for local development
+        ],
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
+
 @app.route('/api/detect_emotion', methods=['POST', 'OPTIONS'])
-@cross_origin(
-    origins=[
-        "https://muemo-frontend-950251872768.us-central1.run.app",
-        # "http://localhost:3000"
-    ],
-    methods=["POST", "OPTIONS"],
-    allow_headers=["Content-Type"]
-)
 def detect_emotion():
     if request.method == 'OPTIONS':
-        return jsonify({}), 200
+        # Preflight request handling
+        response = jsonify({})
+        return response
     
     try:
         if 'image' not in request.files:
@@ -37,4 +43,4 @@ def detect_emotion():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080)) 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
