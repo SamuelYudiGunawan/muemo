@@ -4,7 +4,7 @@ import Camera from "./components/Camera";
 import MusicRecommendations from "./components/MusicRecommendations";
 
 export default function Home() {
-  const [emotion, setEmotion] = useState("Neutral");
+  const [emotion, setEmotion] = useState<string | null>(null);
   const [capturingMode, setCapturingMode] = useState("single");
   const [timeInterval, setTimeInterval] = useState(5); // in minutes
   return (
@@ -66,7 +66,7 @@ export default function Home() {
 
         {/* Music Recommendation Section */}
         <div className="w-1/3">
-          <MusicRecommendations emotion={emotion} /> {/* Pass emotion to MusicRecommendations */}
+          <MusicRecommendations emotion={emotion} />
         </div>
       </div>
     </div>
